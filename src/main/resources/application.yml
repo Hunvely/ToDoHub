@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: todo
+  datasource:
+    url: jdbc:mariadb://localhost:3306/tododb
+    username: todo
+    password: todo
+    driver-class-name: org.mariadb.jdbc.Driver
+  sql:
+    init:
+      platform: mysql
+      mode: always
+
+
+
+mybatis:
+  mapper-locations: classpath:mappers/*.xml
+  type-aliases-package: com.example.todo.model

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.todo.mapper.TodoMapper">
+
+    <insert id="save" parameterType="com.example.todo.model.Todo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO TASKS (title, description)
+        VALUES (#{title}, #{description})
+    </insert>
+
+    <select id="findAll" resultType="com.example.todo.model.Todo">
+        SELECT *
+        FROM TASKS
+    </select>
+
+    <update id="edit" parameterType="com.example.todo.model.Todo">
+        UPDATE TASKS
+        SET title       = #{title},
+            description = #{description}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE
+        FROM TASKS
+        WHERE id = #{id}
+    </delete>
+</mapper>

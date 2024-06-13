@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        h2 {
+            text-align: center;
+            font-family: "Arial", sans-serif;
+            font-size: 2.5em;
+            color: #007bff;
+            background-color: #f8f9fa;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 10px 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .emptyContainer {
+            text-align: center;
+        }
+
+        .empty {
+            display: inline-block;
+            font-family: "Arial", sans-serif;
+            font-size: 1.1em;
+            margin-top: 15px;
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 10px;
+            padding: 10px 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div id="app" class="container">
+    <h2>To-Do List</h2>
+    <div>
+        <form @submit.prevent="onSubmit">
+            <div class="d-flex">
+                <div class="flex-grow-1 mr-2">
+                    <input class="form-control" type="text" v-model="title" placeholder="Input new to-do title"/>
+                    <input class="form-control mt-2" type="text" v-model="description"
+                           placeholder="Input new to-do description"/>
+                </div>
+                <div>
+                    <button class="btn text-white" style="background-color: #000000" type="submit">Save</button>
+                </div>
+            </div>
+            <div v-show="hasError" style="color: red">Enter your to-do task in the empty text box..</div>
+        </form>
+    </div>
+    <hr/>
+    <input class="form-control" type="text" v-model="searchText" placeholder="Search"/>
+    <div class="emptyContainer" v-if="!filteredTodos.length">
+        <div class="empty">There are no items displayed in the To-Do list..</div>
+    </div>
+    <div v-for="(todo, index) in filteredTodos" :key="todo.id" class="card mt-2" v-if="todo.title">
+        <div class="card-body p-2 d-flex align-items-center">
+            <div class="form-check flex-grow-1">
+                <input class="form-check-input" type="checkbox" :checked="todo.completed" @change="toggleTodo(index)"/>
+                <label class="form-check-label" :style="todo.completed ? todoStyle : {}">{{ todo.title }} :
+                    {{ todo.description }}</label>
+            </div>
+            <button class="btn btn-primary btn-sm" @click="editTodo(index)">Update</button>
+            <button class="btn btn-danger btn-sm" @click="deleteTodo(todo.id, index)">Delete</button>
+        </div>
+        <div v-if="editingIndex === index">
+            <input type="text" class="form-control mt-2" v-model="editTitle" placeholder="Edit title"
+                   @keyup.enter="saveEdit(index)"/>
+            <input type="text" class="form-control mt-2" v-model="editDescription" placeholder="Edit description"
+                   @keyup.enter="saveEdit(index)"/>
+            <button class="btn btn-success btn-sm mt-2" @click="saveEdit(index)">Save</button>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            todos: [],
+            title: '',
+            description: '',
+            todoStyle: {
+                textDecoration: 'line-through',
+                color: 'gray'
+            },
+            hasError: false,
+            searchText: '',
+            editingIndex: null,
+            editTitle: '',
+            editDescription: ''
+        },
+        computed: {
+            filteredTodos: function () {
+                var self = this;
+                if (self.searchText) {
+                    return self.todos.filter(function (todo) {
+                        return todo.title.includes(self.searchText) || todo.description.includes(self.searchText);
+                    });
+                } else {
+                    return self.todos;
+                }
+            }
+        },
+        methods: {
+            onSubmit: function () {
+                var self = this;
+                if (!self.title.trim() || !self.description.trim()) {
+                    self.hasError = true;
+                    return;
+                }
+
+                axios.post('/todos/save', {
+                    title: self.title,
+                    description: self.description,
+                    completed: false
+                })
+                    .then(function (response) {
+                        console.log('Todo saved successfully:', response.data.data);
+                        self.todos.push({
+                            id: response.data.data.id,
+                            title: self.title,
+                            description: self.description,
+                            completed: false
+                        });
+                        self.title = '';
+                        self.description = '';
+                        self.hasError = false;
+                    })
+                    .catch(function (error) {
+                        console.error('Error saving todo:', error);
+                    });
+            },
+            toggleTodo: function (index) {
+                var self = this;
+                self.todos[index].completed = !self.todos[index].completed;
+            },
+            editTodo: function (index) {
+                var self = this;
+                self.editingIndex = index;
+                self.editTitle = self.todos[index].title;
+                self.editDescription = self.todos[index].description;
+            },
+            saveEdit: function (index) {
+                var self = this;
+                const editedTodo = {
+                    id: self.todos[index].id,
+                    title: self.editTitle,
+                    description: self.editDescription,
+                    completed: self.todos[index].completed
+                };
+
+                axios.patch('/todos/edit', editedTodo)
+                    .then(function (response) {
+                        console.log('Todo updated successfully:', response.data);
+                        self.todos[index] = editedTodo;
+                        self.editingIndex = null;
+                    })
+                    .catch(function (error) {
+                        console.error('Error updating todo:', error);
+                    });
+            },
+            deleteTodo: function (id, index) {
+                var self = this;
+                console.log('Deleting todo with id:', id);
+                axios.delete('/todos/delete/' + id)
+                    .then(function (response) {
+                        console.log('Todo deleted successfully:', response.data);
+                        self.todos.splice(index, 1);
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting todo:', error);
+                    });
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
