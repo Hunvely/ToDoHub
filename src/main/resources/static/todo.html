@@ -54,13 +54,13 @@
                     <button class="btn text-white" style="background-color: #000000" type="submit">Save</button>
                 </div>
             </div>
-            <div v-show="hasError" style="color: red">Enter your to-do task in the empty text box..</div>
+            <div v-show="hasError" style="color: red">Both fields are required:)</div>
         </form>
     </div>
     <hr/>
     <input class="form-control" type="text" v-model="searchText" placeholder="Search"/>
     <div class="emptyContainer" v-if="!filteredTodos.length">
-        <div class="empty">There are no items displayed in the To-Do list..</div>
+        <div class="empty">There are no items displayed in the To-Do list;)</div>
     </div>
     <div v-for="(todo, index) in filteredTodos" :key="todo.id" class="card mt-2" v-if="todo.title">
         <div class="card-body p-2 d-flex align-items-center">
@@ -77,8 +77,9 @@
                    @keyup.enter="saveEdit(index)"/>
             <input type="text" class="form-control mt-2" v-model="editDescription" placeholder="Edit description"
                    @keyup.enter="saveEdit(index)"/>
-            <button class="btn btn-success btn-sm mt-2" @click="saveEdit(index)">Save</button>
-
+            <div class="d-flex justify-content-end mt-2">
+                <button class="btn text-white" style="background-color: #000000" @click="saveEdit(index)">Save</button>
+            </div>
         </div>
     </div>
 </div>
@@ -104,11 +105,11 @@
         },
         computed: {
             filteredTodos: function () {
-                var self = this;
+                var self = this; // Vue 인스턴스에 접근
                 if (self.searchText) {
                     return self.todos.filter(function (todo) {
                         return todo.title.includes(self.searchText) || todo.description.includes(self.searchText);
-                    });
+                    }); // includes 메서드를 통해 필터링 된 새로운 배열 객체 생성
                 } else {
                     return self.todos;
                 }
@@ -117,34 +118,42 @@
         methods: {
             onSubmit: function () {
                 var self = this;
-                if (!self.title.trim() || !self.description.trim()) {
+                if (!self.title.trim() || !self.description.trim()) { // trim()을 통해 빈 문자열 폼 제출 막기
                     self.hasError = true;
-                    return;
+                    return; // 함수 실행 중단
                 }
 
+                // onSubmit 유효성 검사 통과
                 axios.post('/todos/save', {
                     title: self.title,
                     description: self.description,
                     completed: false
                 })
                     .then(function (response) {
-                        console.log('Todo saved successfully:', response.data.data);
+                        // response: HTTP 응답 객체 전체
+                        // response.data: 서버에서 반환된 실제 데이터
+                        // response.data.data: 실제 데이터 객체
+                        console.log('Todo saved successfully : ', response.data);
+                        alert(response.data.message);
                         self.todos.push({
+                            // id 고유 식별자를 delete 통신을 위해 실제 데이터 객체로 저장
                             id: response.data.data.id,
                             title: self.title,
                             description: self.description,
                             completed: false
                         });
+                        // 저장 후 입력 폼 데이터 초기화
                         self.title = '';
                         self.description = '';
                         self.hasError = false;
                     })
                     .catch(function (error) {
-                        console.error('Error saving todo:', error);
+                        console.error('Error saving todo : ', error);
                     });
             },
             toggleTodo: function (index) {
                 var self = this;
+                // 선택한 체크박스의 값을 반대 값으로 변경 ex) 완료 check -> 미완료 / 미완료 check -> 완료
                 self.todos[index].completed = !self.todos[index].completed;
             },
             editTodo: function (index) {
@@ -155,6 +164,7 @@
             },
             saveEdit: function (index) {
                 var self = this;
+                // 수정 후 불변성 유지
                 const editedTodo = {
                     id: self.todos[index].id,
                     title: self.editTitle,
@@ -164,24 +174,26 @@
 
                 axios.patch('/todos/edit', editedTodo)
                     .then(function (response) {
-                        console.log('Todo updated successfully:', response.data);
+                        console.log('Todo updated successfully :', response.data);
+                        alert(response.data.message);
                         self.todos[index] = editedTodo;
                         self.editingIndex = null;
                     })
                     .catch(function (error) {
-                        console.error('Error updating todo:', error);
+                        console.error('Error updating todo : ', error);
                     });
             },
+            // 고유 식별자와 인덱스를 매개변수로 받으면 안정성 증가
             deleteTodo: function (id, index) {
                 var self = this;
-                console.log('Deleting todo with id:', id);
+                console.log('Deleting todo with id : ', id);
                 axios.delete('/todos/delete/' + id)
                     .then(function (response) {
-                        console.log('Todo deleted successfully:', response.data);
-                        self.todos.splice(index, 1);
+                        console.log('Todo deleted successfully : ', response.data);
+                        self.todos.splice(index, 1); // splice(x,y) x번의 인덱스에서 y개수 요소 삭제
                     })
                     .catch(function (error) {
-                        console.error('Error deleting todo:', error);
+                        console.error('Error deleting todo : ', error);
                     });
             }
         }
