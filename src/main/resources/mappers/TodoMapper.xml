@@ -5,8 +5,8 @@
 <mapper namespace="com.example.todo.mapper.TodoMapper">
 
     <insert id="save" parameterType="com.example.todo.model.Todo" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO TASKS (title, description)
-        VALUES (#{title}, #{description})
+        INSERT INTO TASKS (title, description, completed)
+        VALUES (#{title}, #{description}, #{completed})
     </insert>
 
     <select id="findAll" resultType="com.example.todo.model.Todo">
@@ -17,7 +17,8 @@
     <update id="edit" parameterType="com.example.todo.model.Todo">
         UPDATE TASKS
         SET title       = #{title},
-            description = #{description}
+            description = #{description},
+            completed = #{completed}
         WHERE id = #{id}
     </update>
 
