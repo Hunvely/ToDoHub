@@ -32,6 +32,7 @@ public class TodoController {
 
     @GetMapping("/list")
     public ResponseEntity<List<Todo>> getAllTasks() {
+        log.info("Received request to fetch task");
 
         return ResponseEntity.ok(todoService.getAllTasks());
     }
