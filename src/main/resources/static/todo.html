@@ -82,8 +82,9 @@
             <input type="text" class="form-control mt-2" v-model="editDescription" placeholder="Edit description"
                    @keyup.enter="saveEdit(index)"/>
             <div class="d-flex justify-content-end mt-2">
-                <button class="btn text-white" style="background-color: #000000" @click="saveEdit(index)">Save</button>
+                <button class="btn text-white" style="background-color: #000000" type="submit" @click="saveEdit(index)">Save</button>
             </div>
+            <div v-show="hasEditError" style="color: red">Both fields are required:)</div>
         </div>
     </div>
 </div>
@@ -102,6 +103,7 @@
                 color: 'gray'
             },
             hasError: false,
+            hasEditError: false,
             searchText: '',
             editingIndex: null,
             editTitle: '',
@@ -160,7 +162,7 @@
                 axios.get('/todos/list')
                     .then(function (response) {
                         console.log('Todos fetched successfully : ', response.data);
-                        console.log(response.data.todos);
+                        console.log('todos 배열 : ', response.data.todos);
                         self.todos = response.data.todos || [];  // todos 데이터가 없을 경우 빈 배열로 설정
                         self.hasError = false;
                     })
@@ -183,7 +185,10 @@
             },
             saveEdit: function (index) {
                 var self = this;
-
+                if (!self.editTitle.trim() || !self.editDescription.trim()) { // trim()을 통해 빈 문자열 폼 제출 막기
+                    self.hasEditError = true;
+                    return; // 함수 실행 중단
+                }
                 // 수정 후 불변성 유지
                 const editedTodo = {
                     id: self.todos[index].id,
@@ -198,9 +203,11 @@
                         alert(response.data.message);
                         self.todos[index] = editedTodo;
                         self.editingIndex = null;
+                        self.hasEditError = false;
                     })
                     .catch(function (error) {
                         console.error('Error updating todo : ', error);
+                        self.hasEditError = true;
                     });
             },
             // 고유 식별자와 인덱스를 매개변수로 받으면 안정성 증가
