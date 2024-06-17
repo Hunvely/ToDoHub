@@ -5,17 +5,17 @@
 <mapper namespace="com.example.todo.mapper.TodoMapper">
 
     <insert id="save" parameterType="com.example.todo.model.Todo" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO TASKS (title, description, completed)
+        INSERT INTO todos (title, description, completed)
         VALUES (#{title}, #{description}, #{completed})
     </insert>
 
     <select id="findAll" resultType="com.example.todo.model.Todo">
         SELECT *
-        FROM TASKS
+        FROM todos
     </select>
 
     <update id="edit" parameterType="com.example.todo.model.Todo">
-        UPDATE TASKS
+        UPDATE todos
         SET title       = #{title},
             description = #{description},
             completed = #{completed}
@@ -24,7 +24,7 @@
 
     <delete id="deleteById" parameterType="java.lang.Long">
         DELETE
-        FROM TASKS
+        FROM todos
         WHERE id = #{id}
     </delete>
 </mapper>
