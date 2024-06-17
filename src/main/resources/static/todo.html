@@ -52,7 +52,6 @@
                 </div>
                 <div>
                     <button class="btn text-white" style="background-color: #000000" type="submit">Save</button>
-                    <!--콘솔에 GET-->
                     <button class="btn text-white" style="background-color: #007bff" @click.prevent="fetchTodos">Fetch
                         Todos
                     </button>
@@ -162,8 +161,8 @@
                 axios.get('/todos/list')
                     .then(function (response) {
                         console.log('Todos fetched successfully : ', response.data);
-                        console.log('todos 배열 : ', response.data.todos);
-                        self.todos = response.data.todos || [];  // todos 데이터가 없을 경우 빈 배열로 설정
+                        console.log('todos 배열 : ', response.data);
+                        self.todos = response.data || [];  // todos 데이터가 없을 경우 빈 배열로 설정
                         self.hasError = false;
                     })
                     .catch(function (error) {
@@ -185,6 +184,7 @@
             },
             saveEdit: function (index) {
                 var self = this;
+                // 수정 후 저장할 때 유효성 검사
                 if (!self.editTitle.trim() || !self.editDescription.trim()) { // trim()을 통해 빈 문자열 폼 제출 막기
                     self.hasEditError = true;
                     return; // 함수 실행 중단
